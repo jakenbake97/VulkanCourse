@@ -4,8 +4,7 @@
 
 VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	:
-	window(pWindow),
-	instance(nullptr), debugMessenger(), mainDevice(), graphicsQueue(nullptr)
+	window(pWindow)
 {
 }
 
@@ -87,10 +86,6 @@ void VulkanRenderer::CreateInstance()
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 	createInfo.ppEnabledExtensionNames = instanceExtensions.data();
-
-	// TODO: set up validation layers that instance will use
-	createInfo.enabledLayerCount = 0;
-	createInfo.ppEnabledLayerNames = nullptr;
 
 	// create instance
 	VKERROR(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create a Vulkan Instance");

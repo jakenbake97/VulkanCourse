@@ -47,16 +47,16 @@ private:
 	GLFWwindow* window = nullptr;
 
 	// Vulkan Components
-	VkInstance instance;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VkInstance instance = VK_NULL_HANDLE;
+	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
 	struct
 	{
-		VkPhysicalDevice physicalDevice;
-		VkDevice logicalDevice;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkDevice logicalDevice = VK_NULL_HANDLE;
 	} mainDevice;
 
-	VkQueue graphicsQueue;
+	VkQueue graphicsQueue = VK_NULL_HANDLE;
 
 	const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
