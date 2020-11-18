@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <vector>
+#include <set>
 #include "Utilities.h"
 
 class VulkanRenderer
@@ -17,12 +18,16 @@ private:
 	// - Create Functions
 	void CreateInstance();
 	void CreateLogicalDevice();
+	void CreateSurface();
+
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();
-	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+	                                             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 	                                             const VkAllocationCallbacks* pAllocator,
 	                                             VkDebugUtilsMessengerEXT* pDebugMessenger);
-	static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+	static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
+	                                          const VkAllocationCallbacks* pAllocator);
 
 	// - Getter Functions
 	void GetPhysicalDevice();
@@ -30,12 +35,14 @@ private:
 	// - Support Functions
 	// - - Checker Functions
 	static bool CheckInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-	static bool CheckDeviceSuitable(VkPhysicalDevice device);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	bool CheckDeviceSuitable(VkPhysicalDevice device);
 	bool CheckValidationLayerSupport() const;
 
 	// - - Getter Functions
-	static QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
+	QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
 	std::vector<const char*> GetRequiredGLFWExtensions() const;
+	SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
 
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -56,8 +63,18 @@ private:
 	} mainDevice;
 
 	VkQueue graphicsQueue = nullptr;
+	VkQueue presentationQueue = nullptr;
+	VkSurfaceKHR surface{};
 
-	const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+	const std::vector<const char*> validationLayers =
+	{
+		"VK_LAYER_KHRONOS_validation"
+	};
+
+	const std::vector<const char*> deviceExtensions =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
 
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;

@@ -5,6 +5,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	window(pWindow)
 {
 		CreateInstance();
+		CreateSurface();
 		GetPhysicalDevice();
 		CreateLogicalDevice();
 }
@@ -15,7 +16,9 @@ VulkanRenderer::~VulkanRenderer()
 	{
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
+	
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyInstance(instance, nullptr);
 }
 
@@ -82,28 +85,36 @@ void VulkanRenderer::CreateLogicalDevice()
 	// get the queue family indices for the chosen physical device
 	const QueueFamilyIndices indices = GetQueueFamilies(mainDevice.physicalDevice);
 
+	// Vector for queue creation information, and set for family indices
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<int> queueFamilyIndices = {indices.graphicsFamily, indices.presentationFamily};
+
 	// Queues the logical device needs to create and info to do so
-	VkDeviceQueueCreateInfo queueCreateInfo = {};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily; // The index of the family to create a queue from
-	queueCreateInfo.queueCount = 1; // number of queues to create
-	float priority = 1.0f;
-	queueCreateInfo.pQueuePriorities = &priority;
-	// Vulkan needs to know how to handle multiple queues, so decide priority (1 = highest)
+	for (int queueFamilyIndex : queueFamilyIndices)
+	{
+		VkDeviceQueueCreateInfo queueCreateInfo = {};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFamilyIndex;                  // The index of the family to create a queue from
+		queueCreateInfo.queueCount = 1;                                       // number of queues to create
+		float priority = 1.0f;
+		queueCreateInfo.pQueuePriorities = &priority;
+
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
 
 	// information to create a logical device (also know just as device)
 	VkDeviceCreateInfo deviceCreateInfo = {};
 	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	deviceCreateInfo.queueCreateInfoCount = 1; // Number of queue create infos
-	deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+	deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());  // Number of queue create infos
+	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 	// List of queue create infos so device can create required queues
-	deviceCreateInfo.enabledExtensionCount = 0; // number of enabled logical device extensions
-	deviceCreateInfo.ppEnabledExtensionNames = nullptr; // List of enabled logical device extensions
+	deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()); // number of enabled logical device extensions
+	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();                   // List of enabled logical device extensions
 
 	// physical device features that logical device will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 
-	deviceCreateInfo.pEnabledFeatures = &deviceFeatures; // Physical device features logical device will use
+	deviceCreateInfo.pEnabledFeatures = &deviceFeatures;                  // Physical device features logical device will use
 
 	// Create the logical device for the given Physical device
 	VK_ERROR(vkCreateDevice(mainDevice.physicalDevice, &deviceCreateInfo, nullptr, &mainDevice.logicalDevice),
@@ -112,6 +123,13 @@ void VulkanRenderer::CreateLogicalDevice()
 	// Queues are created at the same time as the device, so we want a handle to the queues
 	// From a given logical device, of a given queue family, of a given queue index, store our queue
 	vkGetDeviceQueue(mainDevice.logicalDevice, indices.graphicsFamily, 0, &graphicsQueue);
+	vkGetDeviceQueue(mainDevice.logicalDevice, indices.presentationFamily, 0, &presentationQueue);
+}
+
+void VulkanRenderer::CreateSurface()
+{
+	// Creates a surface create info struct and runs the appropriate create surface function for the user's system
+	VK_ERROR(glfwCreateWindowSurface(instance, window, nullptr, &surface), "GLFW failed to create a window surface");
 }
 
 void VulkanRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
@@ -186,6 +204,11 @@ void VulkanRenderer::GetPhysicalDevice()
 			break;
 		}
 	}
+
+	if (mainDevice.physicalDevice == nullptr)
+	{
+		VK_ERROR(-1, "Failed find suitable physical device");
+	}
 }
 
 bool VulkanRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* checkExtensions)
@@ -224,6 +247,42 @@ bool VulkanRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* che
 	return true;
 }
 
+bool VulkanRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device)
+{
+	// get device extension count
+	uint32_t extensionCount = 0;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+	// if no extensions found return false
+	if (extensionCount == 0)
+		return false;
+
+	// populate list of extensions
+	std::vector<VkExtensionProperties> extensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data());
+
+	// check for extension
+	for (const auto& deviceExtension : deviceExtensions)
+	{
+		bool hasExtension = false;
+		for (const auto& extension : extensions)
+		{
+			if (strcmp(deviceExtension, extension.extensionName) == 0)
+			{
+				hasExtension = true;
+				break;
+			}
+		}
+
+		if (!hasExtension)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool VulkanRenderer::CheckDeviceSuitable(VkPhysicalDevice device)
 {
 	//// information about the device itself (ID, name, type, vendor, etc)
@@ -237,7 +296,17 @@ bool VulkanRenderer::CheckDeviceSuitable(VkPhysicalDevice device)
 
 	const QueueFamilyIndices indices = GetQueueFamilies(device);
 
-	return indices.IsValid();
+	const bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+	bool swapChainValid = false;
+	
+	if (extensionsSupported)
+	{
+		const SwapChainDetails swapChainDetails = GetSwapChainDetails(device);
+		swapChainValid = !swapChainDetails.presentationModes.empty() && !swapChainDetails.formats.empty();
+	}
+
+	return indices.IsValid() && extensionsSupported && swapChainValid;
 }
 
 bool VulkanRenderer::CheckValidationLayerSupport() const
@@ -280,6 +349,11 @@ QueueFamilyIndices VulkanRenderer::GetQueueFamilies(VkPhysicalDevice device)
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
+	if (queueFamilyCount == 0)
+	{
+		VK_ERROR(-1, "Failed to get any physical device queue properties");
+	}
+	
 	std::vector<VkQueueFamilyProperties> queueFamilyList(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyList.data());
 
@@ -295,6 +369,16 @@ QueueFamilyIndices VulkanRenderer::GetQueueFamilies(VkPhysicalDevice device)
 			indices.graphicsFamily = i; // If queue family is valid, then get index
 		}
 
+		// check if queue family supports presentation
+		VkBool32 presentationSupport = false;
+		VK_ERROR(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentationSupport), "Failed to check physical device surface support");
+
+		// check if queue is presentation type (can be both graphics and presentation)
+		if (queueFamily.queueCount > 0 && presentationSupport)
+		{
+			indices.presentationFamily = i;
+		}
+		
 		// check if queue family indices are in a valid state, stop search if they all are
 		if (indices.IsValid())
 			break;
@@ -321,6 +405,39 @@ std::vector<const char*> VulkanRenderer::GetRequiredGLFWExtensions() const
 	}
 
 	return extensions;
+}
+
+SwapChainDetails VulkanRenderer::GetSwapChainDetails(VkPhysicalDevice device)
+{
+	SwapChainDetails swapChainDetails;
+
+	// Surface capabilities
+	VK_ERROR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &swapChainDetails.surfaceCapabilities),
+		"Failed to get physical device surface capabilities"
+	);
+
+
+	// Formats
+	uint32_t formatCount = 0;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+
+	if (formatCount != 0)
+	{
+		swapChainDetails.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, swapChainDetails.formats.data());
+	}
+
+	// Presentation modes
+	uint32_t presentationCount = 0;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentationCount, nullptr);
+
+	if (presentationCount != 0)
+	{
+		swapChainDetails.presentationModes.resize(presentationCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentationCount, swapChainDetails.presentationModes.data());
+	}
+
+	return swapChainDetails;
 }
 
 VkBool32 VulkanRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
