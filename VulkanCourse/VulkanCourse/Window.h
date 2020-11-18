@@ -6,7 +6,7 @@
 class Window
 {
 public:
-	Window(std::string wName = "Test Window", const int width = 800, const int height = 600);
+	Window(const std::string& wName = "Test Window", const int width = 800, const int height = 600);
 	~Window();
 
 	GLFWwindow* GetGLFWWindow() const;

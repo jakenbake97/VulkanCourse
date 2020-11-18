@@ -1,15 +1,20 @@
 #include "Window.h"
 
-Window::Window(const std::string wName, const int width, const int height)
+#include <stdexcept>
+
+Window::Window(const std::string& wName, const int width, const int height)
 {
 	// Initialize GLFW
-	glfwInit();
+	if (glfwInit() != GLFW_TRUE)
+		throw std::runtime_error("Failed to initialize GLFW");
 
 	// Set GLFW to not use OpenGL
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	window = glfwCreateWindow(width, height, wName.c_str(), nullptr, nullptr);
+	if (window == nullptr)
+		throw std::runtime_error("Failed to create GLFW window instance");
 }
 
 Window::~Window()

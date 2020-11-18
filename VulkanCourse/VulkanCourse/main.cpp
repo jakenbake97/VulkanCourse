@@ -7,15 +7,20 @@
 
 int main()
 {
-	// Create Window
-	Window window("Half-Way Engine", 1920, 1080);
+	try
+	{
+		// Create Window
+		const Window window("Half-Way Engine", 1920, 1080);
 
-	// Create VulkanRenderer Instance
-	VulkanRenderer renderer(window.GetGLFWWindow());
-	
-	if (renderer.Initialize() != EXIT_SUCCESS) return EXIT_FAILURE;
+		// Create VulkanRenderer Instance
+		VulkanRenderer renderer(window.GetGLFWWindow());
 
-	window.LoopWindow();
-	
+		window.LoopWindow();
+	}
+	catch (std::runtime_error& e)
+	{
+		printf("\nERROR: %s\n", e.what());
+		return EXIT_FAILURE;
+	}
 	return EXIT_SUCCESS;
 }

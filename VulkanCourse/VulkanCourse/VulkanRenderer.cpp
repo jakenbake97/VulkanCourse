@@ -1,11 +1,12 @@
 #include "VulkanRenderer.h"
 
-#define VKERROR(VKResult, message) if ((VKResult) != VK_SUCCESS) throw std::runtime_error((message))
-
 VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	:
 	window(pWindow)
 {
+		CreateInstance();
+		GetPhysicalDevice();
+		CreateLogicalDevice();
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -18,28 +19,12 @@ VulkanRenderer::~VulkanRenderer()
 	vkDestroyInstance(instance, nullptr);
 }
 
-int VulkanRenderer::Initialize()
-{
-	try
-	{
-		CreateInstance();
-		GetPhysicalDevice();
-		CreateLogicalDevice();
-	}
-	catch (const std::runtime_error& e)
-	{
-		printf("ERROR: %s\n", e.what());
-		return EXIT_FAILURE;
-	}
-	return EXIT_SUCCESS;
-}
-
 void VulkanRenderer::CreateInstance()
 {
 	// Check to see if the application is requesting validation layers, and if so, make sure they are supported
 	if (enableValidationLayers && !CheckValidationLayerSupport())
 	{
-		VKERROR(-1, "Validation layers requested, but not available or supported");
+		VK_ERROR(-1, "Validation layers requested, but not available or supported");
 	}
 
 	// info about the application, not just the Vulkan parts
@@ -66,7 +51,7 @@ void VulkanRenderer::CreateInstance()
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 
 		PopulateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+		createInfo.pNext = static_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo);
 	}
 	else
 	{
@@ -81,21 +66,21 @@ void VulkanRenderer::CreateInstance()
 	// check instance extensions supported
 	if (!CheckInstanceExtensionSupport(&instanceExtensions))
 	{
-		VKERROR(-1, "VkInstance does not support required instance extensions!");
+		VK_ERROR(-1, "VkInstance does not support required instance extensions!");
 	}
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 	createInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
 	// create instance
-	VKERROR(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create a Vulkan Instance");
+	VK_ERROR(vkCreateInstance(&createInfo, nullptr, &instance), "Failed to create a Vulkan Instance");
 	SetupDebugMessenger();
 }
 
 void VulkanRenderer::CreateLogicalDevice()
 {
 	// get the queue family indices for the chosen physical device
-	QueueFamilyIndices indices = GetQueueFamilies(mainDevice.physicalDevice);
+	const QueueFamilyIndices indices = GetQueueFamilies(mainDevice.physicalDevice);
 
 	// Queues the logical device needs to create and info to do so
 	VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -115,13 +100,13 @@ void VulkanRenderer::CreateLogicalDevice()
 	deviceCreateInfo.enabledExtensionCount = 0; // number of enabled logical device extensions
 	deviceCreateInfo.ppEnabledExtensionNames = nullptr; // List of enabled logical device extensions
 
-	// physical device deatures that logical device will be using
+	// physical device features that logical device will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 
 	deviceCreateInfo.pEnabledFeatures = &deviceFeatures; // Physical device features logical device will use
 
 	// Create the logical device for the given Physical device
-	VKERROR(vkCreateDevice(mainDevice.physicalDevice, &deviceCreateInfo, nullptr, &mainDevice.logicalDevice),
+	VK_ERROR(vkCreateDevice(mainDevice.physicalDevice, &deviceCreateInfo, nullptr, &mainDevice.logicalDevice),
 	        "Failed to Create Logical device");
 
 	// Queues are created at the same time as the device, so we want a handle to the queues
@@ -148,12 +133,12 @@ void VulkanRenderer::SetupDebugMessenger()
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	PopulateDebugMessengerCreateInfo(createInfo);
 
-	VKERROR(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger), "Failed to set up debug messenger");
+	VK_ERROR(CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger), "Failed to set up debug messenger");
 }
 
 VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
-	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator,
-	VkDebugUtilsMessengerEXT* pDebugMessenger)
+                                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+                                                      VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
 	const auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 	if (func != nullptr)
@@ -169,7 +154,7 @@ VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
 void VulkanRenderer::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
 	const VkAllocationCallbacks* pAllocator)
 {
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+	const auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 	if (func != nullptr)
 	{
 		func(instance, debugMessenger, pAllocator);
@@ -178,19 +163,19 @@ void VulkanRenderer::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugU
 
 void VulkanRenderer::GetPhysicalDevice()
 {
-	// Enumberate the Physical devices the VkInstance can access
+	// Enumerate the Physical devices the VkInstance can access
 	uint32_t deviceCount = 0;
-	VKERROR(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr), "Failed to get physical device count");
+	VK_ERROR(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr), "Failed to get physical device count");
 
 	// if no devices available, then none support Vulkan
 	if (deviceCount == 0)
 	{
-		VKERROR(-1, "Can't Find any physical devices that support Vulkan Instance");
+		VK_ERROR(-1, "Can't Find any physical devices that support Vulkan Instance");
 	}
 
 	// get list of physical devices
 	std::vector<VkPhysicalDevice> deviceList(deviceCount);
-	VKERROR(vkEnumeratePhysicalDevices(instance, &deviceCount, deviceList.data()),
+	VK_ERROR(vkEnumeratePhysicalDevices(instance, &deviceCount, deviceList.data()),
 	        "Failed to get list of physical devices");
 
 	for (const auto& device : deviceList)
@@ -207,14 +192,14 @@ bool VulkanRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* che
 {
 	// need to get the number of extensions to create an array of the correct size to hold the extensions
 	uint32_t extensionCount = 0;
-	VKERROR(
+	VK_ERROR(
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr),
 		"Failed to get number of extension properties"
 	);
 
 	// create a list of vkExtensionsProperties using the count
 	std::vector<VkExtensionProperties> extensions(extensionCount);
-	VKERROR(
+	VK_ERROR(
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data()),
 		"Failed to get list of instance extensions"
 	);
@@ -225,7 +210,7 @@ bool VulkanRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* che
 		bool hasExtension = false;
 		for (const auto& extension : extensions)
 		{
-			if (strcmp(checkExtension, extension.extensionName))
+			if (strcmp(checkExtension, extension.extensionName) == 0)
 			{
 				hasExtension = true;
 				break;
@@ -250,7 +235,7 @@ bool VulkanRenderer::CheckDeviceSuitable(VkPhysicalDevice device)
 	//VkPhysicalDeviceFeatures deviceFeatures;
 	//vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-	QueueFamilyIndices indices = GetQueueFamilies(device);
+	const QueueFamilyIndices indices = GetQueueFamilies(device);
 
 	return indices.IsValid();
 }
@@ -258,14 +243,14 @@ bool VulkanRenderer::CheckDeviceSuitable(VkPhysicalDevice device)
 bool VulkanRenderer::CheckValidationLayerSupport() const
 {
 	uint32_t layerCount;
-	VKERROR(vkEnumerateInstanceLayerProperties(&layerCount, nullptr),
+	VK_ERROR(vkEnumerateInstanceLayerProperties(&layerCount, nullptr),
 	        "Failed to get the layer properties available to the instance");
 
 	std::vector<VkLayerProperties> layerList(layerCount);
-	VKERROR(vkEnumerateInstanceLayerProperties(&layerCount, layerList.data()),
+	VK_ERROR(vkEnumerateInstanceLayerProperties(&layerCount, layerList.data()),
 	        "Failed to return available layers in layer list");
 
-	for (auto layerName : validationLayers)
+	for (const auto* layerName : validationLayers)
 	{
 		bool layerFound = false;
 
@@ -291,7 +276,7 @@ QueueFamilyIndices VulkanRenderer::GetQueueFamilies(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
 
-	// get all queue famility property info for the given device
+	// get all queue family property info for the given device
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -325,7 +310,7 @@ std::vector<const char*> VulkanRenderer::GetRequiredGLFWExtensions() const
 	// Set up extensions that the instance will use
 	uint32_t glfwExtensionCount = 0; // GLFW may require multiple extensions
 
-	// Extensions passed as array of cstrings, so this is the pointer to the array or pointers
+	// Extensions passed as array of c-strings, so this is the pointer to the array or pointers
 	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);

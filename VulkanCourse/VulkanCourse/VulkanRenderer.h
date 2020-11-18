@@ -12,7 +12,6 @@ class VulkanRenderer
 public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
-	int Initialize();
 private:
 	// Vulkan Functions
 	// - Create Functions
@@ -47,16 +46,16 @@ private:
 	GLFWwindow* window = nullptr;
 
 	// Vulkan Components
-	VkInstance instance = VK_NULL_HANDLE;
+	VkInstance instance = nullptr;
 	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
 	struct
 	{
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		VkDevice logicalDevice = VK_NULL_HANDLE;
+		VkPhysicalDevice physicalDevice = nullptr;
+		VkDevice logicalDevice = nullptr;
 	} mainDevice;
 
-	VkQueue graphicsQueue = VK_NULL_HANDLE;
+	VkQueue graphicsQueue = nullptr;
 
 	const std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
