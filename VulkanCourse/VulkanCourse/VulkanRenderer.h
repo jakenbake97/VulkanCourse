@@ -19,6 +19,7 @@ private:
 	void CreateInstance();
 	void CreateLogicalDevice();
 	void CreateSurface();
+	void CreateSwapChain();
 
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();
@@ -29,13 +30,18 @@ private:
 	static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
 	                                          const VkAllocationCallbacks* pAllocator);
 
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	                                                    VkDebugUtilsMessageTypeFlagsEXT messageType,
+	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	                                                    void* pUserData);
+
 	// - Getter Functions
 	void GetPhysicalDevice();
 
 	// - Support Functions
 	// - - Checker Functions
 	static bool CheckInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 	bool CheckDeviceSuitable(VkPhysicalDevice device);
 	bool CheckValidationLayerSupport() const;
 
@@ -44,11 +50,13 @@ private:
 	std::vector<const char*> GetRequiredGLFWExtensions() const;
 	SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
 
+	// - - Chooser Functions
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+	static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+	static VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	                                                    VkDebugUtilsMessageTypeFlagsEXT messageType,
-	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	                                                    void* pUserData);
+	// - - Create Functions
+	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 private:
 	GLFWwindow* window = nullptr;
 
@@ -65,6 +73,12 @@ private:
 	VkQueue graphicsQueue = nullptr;
 	VkQueue presentationQueue = nullptr;
 	VkSurfaceKHR surface{};
+	VkSwapchainKHR swapchain;
+	std::vector<SwapChainImage> swapChainImages;
+
+	// Vulkan Utilities
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
 
 	const std::vector<const char*> validationLayers =
 	{

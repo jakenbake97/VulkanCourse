@@ -1,5 +1,11 @@
 #pragma once
 
+constexpr void VK_ERROR(const int result, const char* message)
+{
+	if (result != VK_SUCCESS)
+		throw std::runtime_error(message);
+}
+
 // Indices (locations) of queue Families (if they exist at all)
 struct QueueFamilyIndices
 {
@@ -15,13 +21,13 @@ struct QueueFamilyIndices
 
 struct SwapChainDetails
 {
-	VkSurfaceCapabilitiesKHR surfaceCapabilities;    // surface properties (image size/extent)
+	VkSurfaceCapabilitiesKHR surfaceCapabilities{};    // surface properties (image size/extent)
 	std::vector<VkSurfaceFormatKHR> formats;         // Surface image formats (Color and size)
 	std::vector<VkPresentModeKHR> presentationModes; // how images should be presented to screen
 };
 
-constexpr void VK_ERROR(const int result, const char* message)
+struct SwapChainImage
 {
-	if (result != VK_SUCCESS)
-		throw std::runtime_error(message);
-}
+	VkImage image;
+	VkImageView imageView;
+};
