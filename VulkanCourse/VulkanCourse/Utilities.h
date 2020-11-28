@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 constexpr void VK_ERROR(const int result, const char* message)
 {
 	if (result != VK_SUCCESS)
@@ -31,3 +33,31 @@ struct SwapChainImage
 	VkImage image;
 	VkImageView imageView;
 };
+
+static std::vector<char> ReadFile(const std::string& fileName)
+{
+	// open stream from given file
+	// std::ios::binary tells stream to read file binary
+	// std::ios::ate tells stream to start reading from end of file
+	std::ifstream file(fileName, std::ios::binary | std::ios::ate);
+
+	if (!file.is_open())
+	{
+		const std::string message = "Failed to open file: " + fileName;
+		VK_ERROR(-1, message.c_str());
+	}
+
+	// get current read position and use to size file buffer
+	size_t fileSize = static_cast<size_t>(file.tellg());
+	std::vector<char> fileBuffer(fileSize);
+
+	// reset read position to start
+	file.seekg(0);
+
+	// read file data into buffer and go until we hit the end of the file.
+	file.read(fileBuffer.data(), fileSize);
+
+	file.close();
+
+	return fileBuffer;
+}

@@ -20,6 +20,7 @@ private:
 	void CreateLogicalDevice();
 	void CreateSurface();
 	void CreateSwapChain();
+	void CreateGraphicsPipeline();
 
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();

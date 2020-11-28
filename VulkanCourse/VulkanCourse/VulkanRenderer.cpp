@@ -1,5 +1,6 @@
 #include "VulkanRenderer.h"
 #include <algorithm>
+#include <string>
 
 VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	:
@@ -10,6 +11,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	GetPhysicalDevice();
 	CreateLogicalDevice();
 	CreateSwapChain();
+	CreateGraphicsPipeline();
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -226,6 +228,13 @@ void VulkanRenderer::CreateSwapChain()
 		// Add to swapchain image list
 		swapChainImages.push_back(swapChainImage);
 	}
+}
+
+void VulkanRenderer::CreateGraphicsPipeline()
+{
+	auto vertexShader = ReadFile("Shaders/vert.spv");
+	auto fragmentShader = ReadFile("Shaders/frag.spv");
+
 }
 
 void VulkanRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
