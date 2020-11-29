@@ -58,6 +58,8 @@ private:
 
 	// - - Create Functions
 	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
+	
 private:
 	GLFWwindow* window = nullptr;
 

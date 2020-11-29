@@ -21,11 +21,11 @@ VulkanRenderer::~VulkanRenderer()
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 	}
 
-	for(const auto& image : swapChainImages)
+	for (const auto& image : swapChainImages)
 	{
 		vkDestroyImageView(mainDevice.logicalDevice, image.imageView, nullptr);
 	}
-	
+
 	vkDestroySwapchainKHR(mainDevice.logicalDevice, swapchain, nullptr);
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -100,7 +100,7 @@ void VulkanRenderer::CreateLogicalDevice()
 	std::set<int> queueFamilyIndices = {indices.graphicsFamily, indices.presentationFamily};
 
 	float priority = 1.0f;
-	
+
 	// Queues the logical device needs to create and info to do so
 	for (int queueFamilyIndex : queueFamilyIndices)
 	{
@@ -158,11 +158,12 @@ void VulkanRenderer::CreateSwapChain()
 	// How many images are in the swap chain? get 1 more than the minimum to allow for triple buffering
 	uint32_t imageCount = swapChainDetails.surfaceCapabilities.minImageCount + 1;
 
-	if (swapChainDetails.surfaceCapabilities.maxImageCount > 0 && swapChainDetails.surfaceCapabilities.maxImageCount < imageCount)
+	if (swapChainDetails.surfaceCapabilities.maxImageCount > 0 && swapChainDetails.surfaceCapabilities.maxImageCount <
+		imageCount)
 	{
 		imageCount = swapChainDetails.surfaceCapabilities.maxImageCount;
 	}
-	
+
 	// Swap chain creation info
 	VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
 	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -184,7 +185,9 @@ void VulkanRenderer::CreateSwapChain()
 	// If Graphics and Presentation families are different, then swapchain must let images be shared between families
 	if (indices.graphicsFamily != indices.presentationFamily)
 	{
-		uint32_t queueFamilyIndices[] = {static_cast<uint32_t>(indices.graphicsFamily), static_cast<uint32_t>(indices.presentationFamily)};
+		uint32_t queueFamilyIndices[] = {
+			static_cast<uint32_t>(indices.graphicsFamily), static_cast<uint32_t>(indices.presentationFamily)
+		};
 		swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		swapchainCreateInfo.queueFamilyIndexCount = 2;
 		swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -200,7 +203,8 @@ void VulkanRenderer::CreateSwapChain()
 	swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	// create swapchain
-	VK_ERROR(vkCreateSwapchainKHR(mainDevice.logicalDevice, &swapchainCreateInfo, nullptr, &swapchain), "Failed to create swapchain");
+	VK_ERROR(vkCreateSwapchainKHR(mainDevice.logicalDevice, &swapchainCreateInfo, nullptr, &swapchain),
+	         "Failed to create swapchain");
 
 	swapChainImageFormat = surfaceFormat.format;
 	swapChainExtent = extent;
@@ -213,16 +217,16 @@ void VulkanRenderer::CreateSwapChain()
 	{
 		VK_ERROR(-1, "Failed to get number of images in swapchain");
 	}
-	
+
 	std::vector<VkImage> images(swapChainImageCount);
 	vkGetSwapchainImagesKHR(mainDevice.logicalDevice, swapchain, &swapChainImageCount, images.data());
 
-	for(VkImage image : images)
+	for (VkImage image : images)
 	{
 		// store image handle
 		SwapChainImage swapChainImage{
-		swapChainImage.image = image,
-		swapChainImage.imageView = CreateImageView(image, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT)
+			swapChainImage.image = image,
+			swapChainImage.imageView = CreateImageView(image, swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT)
 		};
 
 		// Add to swapchain image list
@@ -232,17 +236,48 @@ void VulkanRenderer::CreateSwapChain()
 
 void VulkanRenderer::CreateGraphicsPipeline()
 {
-	auto vertexShader = ReadFile("Shaders/vert.spv");
-	auto fragmentShader = ReadFile("Shaders/frag.spv");
+	// read in SPIR-V shader code
+	const auto vertexShader = ReadFile("Shaders/vert.spv");
+	const auto fragmentShader = ReadFile("Shaders/frag.spv");
 
+	// create Shader modules to link to Graphics pipeline
+	const VkShaderModule vertexShaderModule = CreateShaderModule(vertexShader);
+	const VkShaderModule fragmentShaderModule = CreateShaderModule(fragmentShader);
+
+	// -- Shader stage creation information -- 
+	// vertex stage creation
+	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
+	vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertexShaderCreateInfo.module = vertexShaderModule;
+	vertexShaderCreateInfo.pName = "main"; // the name of the function to run in the shader
+
+	// fragment stage creation
+	VkPipelineShaderStageCreateInfo fragmentShaderCreateInfo = {};
+	fragmentShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragmentShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragmentShaderCreateInfo.module = fragmentShaderModule;
+	fragmentShaderCreateInfo.pName = "main"; // the name of the function to run in the shader
+	
+	// shader stage creation info array (required by pipeline)
+	VkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderCreateInfo, fragmentShaderCreateInfo};
+
+	// Create pipeline
+	
+	
+	// Destroy shader modules no longer needed after pipeline created
+	vkDestroyShaderModule(mainDevice.logicalDevice, fragmentShaderModule, nullptr);
+	vkDestroyShaderModule(mainDevice.logicalDevice, vertexShaderModule, nullptr);
 }
 
 void VulkanRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
 	createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 	createInfo.pfnUserCallback = DebugCallback;
 	createInfo.pUserData = nullptr; // optional
 }
@@ -359,7 +394,7 @@ bool VulkanRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	// get device extension count
 	uint32_t extensionCount = 0;
 	VK_ERROR(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr),
-		"Failed to get number of device extension properties"
+	         "Failed to get number of device extension properties"
 	);
 
 	// if no extensions found return false
@@ -368,12 +403,12 @@ bool VulkanRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 
 	// populate list of extensions
 	std::vector<VkExtensionProperties> extensions(extensionCount);
-	VK_ERROR(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()), 
-		"Failed to get list of device extensions"
+	VK_ERROR(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()),
+	         "Failed to get list of device extensions"
 	);
 
 	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
-	
+
 	// check for extension
 	for (const auto& extension : extensions)
 	{
@@ -543,14 +578,15 @@ VkExtent2D VulkanRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surf
 	else
 	{
 		int width, height;
-		glfwGetFramebufferSize(window, &width, &height); // This gets the resolution in pixels (instead of screen coordinates 
+		glfwGetFramebufferSize(window, &width, &height);
+		// This gets the resolution in pixels (instead of screen coordinates 
 
 		// Surface also defines max and min, so make sure it is within boundaries by clamping values
 		return
 		{
 			std::max(surfaceCapabilities.minImageExtent.width,
 			         std::min(surfaceCapabilities.maxImageExtent.width, static_cast<uint32_t>(width))),
-			
+
 			std::max(surfaceCapabilities.minImageExtent.height,
 			         std::min(surfaceCapabilities.maxImageExtent.height, static_cast<uint32_t>(height)))
 		};
@@ -616,9 +652,24 @@ VkImageView VulkanRenderer::CreateImageView(const VkImage image, const VkFormat 
 
 	// Create image view and return it
 	VkImageView imageView;
-	VK_ERROR(vkCreateImageView(mainDevice.logicalDevice, &viewCreateInfo, nullptr, &imageView), "Failed to create image view");
+	VK_ERROR(vkCreateImageView(mainDevice.logicalDevice, &viewCreateInfo, nullptr, &imageView),
+	         "Failed to create image view");
 
 	return imageView;
+}
+
+VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& shaderCode)
+{
+	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
+	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.codeSize = shaderCode.size();
+	shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
+
+	VkShaderModule shaderModule;
+	VK_ERROR(vkCreateShaderModule(mainDevice.logicalDevice, &shaderModuleCreateInfo, nullptr, &shaderModule),
+	         "Failed to create shader module");
+
+	return shaderModule;
 }
 
 VkBool32 VulkanRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
