@@ -262,7 +262,101 @@ void VulkanRenderer::CreateGraphicsPipeline()
 	// shader stage creation info array (required by pipeline)
 	VkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderCreateInfo, fragmentShaderCreateInfo};
 
-	// Create pipeline
+	// -- Vertex Input --
+	VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {};
+	vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputCreateInfo.vertexBindingDescriptionCount = 0;
+	vertexInputCreateInfo.pVertexBindingDescriptions = nullptr; // list of vertex binding descriptions (data spacing / strides)
+	vertexInputCreateInfo.vertexAttributeDescriptionCount = 0;
+	vertexInputCreateInfo.pVertexAttributeDescriptions = nullptr; // list of vertex attribute descriptions (data format and where to bind to/from)
+
+	// -- Input Assembly --
+	VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {};
+	inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; // primitive type to assemble verts as
+	inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE; // allow overriding of topology to start new primitives
+
+	// -- Viewport & Scissor
+	// create a viewport info struct
+	VkViewport viewport = {};
+	viewport.x = 0.0f;  // x start coordinate
+	viewport.y = 0.0f;  // y start coordinate
+	viewport.width = (float)swapChainExtent.width;  // width of viewport
+	viewport.height = (float)swapChainExtent.height; // height of viewport
+	viewport.minDepth = 0.0f;  // min frameBuffer depth
+	viewport.maxDepth = 1.0f;  // max frameBuffer depth
+
+	// Create a scissor info struct
+	VkRect2D scissor = {};
+	scissor.offset = {0,0};  // offset to the start of the region
+	scissor.extent = swapChainExtent; // extent of the region starting at offset
+
+	VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
+	viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportStateCreateInfo.viewportCount = 1;
+	viewportStateCreateInfo.pViewports = &viewport;
+	viewportStateCreateInfo.scissorCount = 1;
+	viewportStateCreateInfo.pScissors = &scissor;
+
+	//// -- Dynamic States --
+	//// Dynamic states to enable
+	//std::vector<VkDynamicState> enabledDynamicStates;
+	//enabledDynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT); // dynamic viewport which can be resized in command buffer
+	//enabledDynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR); // dynamic scissor can be resized in command buffer
+
+	//// Dynamic State creation info
+	//VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {};
+	//dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	//dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(enabledDynamicStates.size());
+
+	// -- Rasterization --
+	VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = {};
+	rasterizationCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizationCreateInfo.depthClampEnable = VK_FALSE; // determines if fragments beyond far plane are clipped (default) or clamped to far plane
+	rasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE; // discards data and skips rasterization (never creates fragments) used for pipeline without frameBuffer output
+	rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;  // how to handle filling points between vertices
+	rasterizationCreateInfo.lineWidth = 1.0f; // How thick lines should be when drawn
+	rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT; // Which face to cull
+	rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;  // The winding to determine which side is front
+	rasterizationCreateInfo.depthBiasEnable = VK_FALSE;  // Whether to add a depth bias to fragments (good for limiting shadow acne)
+
+	// -- MultiSampling --
+	VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo = {};
+	multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE; // enable multisample shading or not
+	multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT; // number of samples to use per fragment
+
+	// -- Blending --
+	// blending decides how to blend a new color being written to a fragment, with the old value
+
+	// blend attachment state (how blending is handled)
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT; // color channels to apply blending to
+	colorBlendAttachment.blendEnable = VK_TRUE;  // enable blending
+
+	// blending uses the following equation (srcColorBlendFactor * new color) colorBlendOp (dstColorBlendFactor * old color)
+	colorBlendAttachment.srcColorBlendFactor  = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	
+	VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo = {};
+	colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlendStateCreateInfo.logicOpEnable = VK_FALSE; // alternative to calculations is to use logical operations
+	colorBlendStateCreateInfo.attachmentCount = 1;
+	colorBlendStateCreateInfo.pAttachments = &colorBlendAttachment;
+
+	// -- Pipeline Layout --
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreateInfo.setLayoutCount = 0;
+	pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
 	
 	
 	// Destroy shader modules no longer needed after pipeline created
