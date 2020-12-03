@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <vector>
 #include <set>
+#include <array>
 #include "Utilities.h"
 
 class VulkanRenderer
@@ -20,6 +21,7 @@ private:
 	void CreateLogicalDevice();
 	void CreateSurface();
 	void CreateSwapChain();
+	void CreateRenderPass();
 	void CreateGraphicsPipeline();
 
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
@@ -36,6 +38,7 @@ private:
 	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	                                                    void* pUserData);
 
+	
 	// - Getter Functions
 	void GetPhysicalDevice();
 
@@ -78,6 +81,11 @@ private:
 	VkSurfaceKHR surface{};
 	VkSwapchainKHR swapchain;
 	std::vector<SwapChainImage> swapChainImages;
+
+	// Pipeline
+	VkPipeline graphicsPipeline;
+	VkPipelineLayout pipelineLayout;
+	VkRenderPass renderPass;
 
 	// Vulkan Utilities
 	VkFormat swapChainImageFormat;
