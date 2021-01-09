@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+const int MAX_FRAME_DRAWS = 2;
+
 constexpr void VK_ERROR(const int result, const char* message)
 {
 	if (result != VK_SUCCESS)

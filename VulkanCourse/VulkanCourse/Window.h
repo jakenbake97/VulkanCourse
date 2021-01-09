@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 #include <string>
 
+class VulkanRenderer;
+
 class Window
 {
 public:
@@ -10,7 +12,7 @@ public:
 	~Window();
 
 	GLFWwindow* GetGLFWWindow() const;
-	void LoopWindow() const;
+	void LoopWindow(VulkanRenderer& renderer) const;
 private:
 	GLFWwindow* window = nullptr;
 };

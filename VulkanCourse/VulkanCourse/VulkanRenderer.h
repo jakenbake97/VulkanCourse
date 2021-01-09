@@ -14,6 +14,7 @@ class VulkanRenderer
 public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
+	void Draw();
 private:
 	// Vulkan Functions
 	// - Create Functions
@@ -23,6 +24,12 @@ private:
 	void CreateSwapChain();
 	void CreateRenderPass();
 	void CreateGraphicsPipeline();
+	void CreateFrameBuffers();
+	void CreateCommandPool();
+	void CreateCommandBuffers();
+	void CreateSynchronization();
+
+	void RecordCommands();
 
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();
@@ -66,6 +73,8 @@ private:
 private:
 	GLFWwindow* window = nullptr;
 
+	int currentFrame = 0;
+
 	// Vulkan Components
 	VkInstance instance = nullptr;
 	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
@@ -80,16 +89,27 @@ private:
 	VkQueue presentationQueue = nullptr;
 	VkSurfaceKHR surface{};
 	VkSwapchainKHR swapchain;
+	
 	std::vector<SwapChainImage> swapChainImages;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	std::vector<VkCommandBuffer> commandBuffers;
 
 	// Pipeline
 	VkPipeline graphicsPipeline;
 	VkPipelineLayout pipelineLayout;
 	VkRenderPass renderPass;
 
+	// Pools
+	VkCommandPool graphicsCommandPool;
+
 	// Vulkan Utilities
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent;
+
+	// Synchronization
+	std::vector<VkSemaphore> imageAvailable;
+	std::vector<VkSemaphore> renderFinished;
+	std::vector<VkFence> drawFences;
 
 	const std::vector<const char*> validationLayers =
 	{

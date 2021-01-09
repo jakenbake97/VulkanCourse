@@ -15,7 +15,7 @@ int main()
 		// Create VulkanRenderer Instance
 		VulkanRenderer renderer(window.GetGLFWWindow());
 
-		window.LoopWindow();
+		window.LoopWindow(renderer);
 	}
 	catch (std::runtime_error& e)
 	{

@@ -1,6 +1,7 @@
 #include "Window.h"
 
 #include <stdexcept>
+#include "VulkanRenderer.h"
 
 Window::Window(const std::string& wName, const int width, const int height)
 {
@@ -29,11 +30,12 @@ GLFWwindow* Window::GetGLFWWindow() const
 	return window;
 }
 
-void Window::LoopWindow() const
+void Window::LoopWindow(VulkanRenderer& renderer) const
 {
 	// loop until closed
 	while(!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+		renderer.Draw();
 	}
 }
