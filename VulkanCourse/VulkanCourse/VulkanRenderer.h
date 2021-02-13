@@ -8,6 +8,7 @@
 #include <set>
 #include <array>
 #include "Utilities.h"
+#include "Mesh.h"
 
 class VulkanRenderer
 {
@@ -75,6 +76,9 @@ private:
 
 	int currentFrame = 0;
 
+	// Scene Objects
+	std::vector<Mesh> meshList;
+	
 	// Vulkan Components
 	VkInstance instance = nullptr;
 	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
@@ -88,23 +92,23 @@ private:
 	VkQueue graphicsQueue = nullptr;
 	VkQueue presentationQueue = nullptr;
 	VkSurfaceKHR surface{};
-	VkSwapchainKHR swapchain;
+	VkSwapchainKHR swapchain{};
 	
 	std::vector<SwapChainImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	std::vector<VkCommandBuffer> commandBuffers;
 
 	// Pipeline
-	VkPipeline graphicsPipeline;
-	VkPipelineLayout pipelineLayout;
-	VkRenderPass renderPass;
+	VkPipeline graphicsPipeline{};
+	VkPipelineLayout pipelineLayout{};
+	VkRenderPass renderPass{};
 
 	// Pools
-	VkCommandPool graphicsCommandPool;
+	VkCommandPool graphicsCommandPool{};
 
 	// Vulkan Utilities
 	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
+	VkExtent2D swapChainExtent{};
 
 	// Synchronization
 	std::vector<VkSemaphore> imageAvailable;

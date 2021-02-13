@@ -10,7 +10,7 @@ int main()
 	try
 	{
 		// Create Window
-		const Window window("Half-Way Engine", 1920, 1080);
+		const Window window("Half-Way Engine", 1280, 720);
 
 		// Create VulkanRenderer Instance
 		VulkanRenderer renderer(window.GetGLFWWindow());

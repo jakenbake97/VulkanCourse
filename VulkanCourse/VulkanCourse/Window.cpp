@@ -6,7 +6,8 @@
 Window::Window(const std::string& wName, const int width, const int height)
 {
 	// Initialize GLFW
-	if (glfwInit() != GLFW_TRUE)
+	const auto result = glfwInit();
+	if (result != GLFW_TRUE)
 		throw std::runtime_error("Failed to initialize GLFW");
 
 	// Set GLFW to not use OpenGL
