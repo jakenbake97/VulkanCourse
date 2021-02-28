@@ -44,9 +44,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\VertexShader.vert" />
-    <None Include="Shaders\FragmentShader.frag" />
     <None Include="Shaders\compileShaders.bat">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Shaders\FragmentShader.frag" />
   </ItemGroup>
 </Project>

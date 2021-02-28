@@ -2,6 +2,8 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <stdexcept>
 #include <vector>
@@ -12,10 +14,88 @@
 
 class VulkanRenderer
 {
+private:
+	GLFWwindow* window = nullptr;
+
+	int currentFrame = 0;
+
+	// Scene Objects
+	std::vector<Mesh> meshList;
+
+	// Scene Settings
+	struct MVP
+	{
+		glm::mat4 projection;
+		glm::mat4 view;
+		glm::mat4 model;
+	}mvp;
+	
+	// Vulkan Components
+	VkInstance instance = nullptr;
+	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+
+	struct
+	{
+		VkPhysicalDevice physicalDevice = nullptr;
+		VkDevice logicalDevice = nullptr;
+	} mainDevice;
+
+	VkQueue graphicsQueue = nullptr;
+	VkQueue presentationQueue = nullptr;
+	VkSurfaceKHR surface{};
+	VkSwapchainKHR swapchain{};
+	
+	std::vector<SwapChainImage> swapChainImages;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	std::vector<VkCommandBuffer> commandBuffers;
+
+	// Descriptors
+	VkDescriptorSetLayout descriptorSetLayout;
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets;
+	
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBufferMemory;
+
+	// Pipeline
+	VkPipeline graphicsPipeline{};
+	VkPipelineLayout pipelineLayout{};
+	VkRenderPass renderPass{};
+
+	// Pools
+	VkCommandPool graphicsCommandPool{};
+
+	// Vulkan Utilities
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent{};
+
+	// Synchronization
+	std::vector<VkSemaphore> imageAvailable;
+	std::vector<VkSemaphore> renderFinished;
+	std::vector<VkFence> drawFences;
+
+	const std::vector<const char*> validationLayers =
+	{
+		"VK_LAYER_KHRONOS_validation"
+	};
+
+	const std::vector<const char*> deviceExtensions =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+#ifdef NDEBUG
+	const bool enableValidationLayers = false;
+#else
+	const bool enableValidationLayers = true;
+#endif
+
 public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
 	void Draw();
+	void UpdateModel(glm::mat4 newModel);
+
 private:
 	// Vulkan Functions
 	// - Create Functions
@@ -24,14 +104,20 @@ private:
 	void CreateSurface();
 	void CreateSwapChain();
 	void CreateRenderPass();
+	void CreateDescriptorSetLayout();
 	void CreateGraphicsPipeline();
 	void CreateFrameBuffers();
 	void CreateCommandPool();
 	void CreateCommandBuffers();
+	void CreateUniformBuffers();
+	void CreateDescriptorPool();
+	void CreateDescriptorSets();
 	void CreateSynchronization();
 
 	void RecordCommands();
 
+	void UpdateUniformBuffers(uint32_t imageIndex);
+	
 	static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();
 	static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
@@ -71,63 +157,4 @@ private:
 	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
 	
-private:
-	GLFWwindow* window = nullptr;
-
-	int currentFrame = 0;
-
-	// Scene Objects
-	std::vector<Mesh> meshList;
-	
-	// Vulkan Components
-	VkInstance instance = nullptr;
-	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
-
-	struct
-	{
-		VkPhysicalDevice physicalDevice = nullptr;
-		VkDevice logicalDevice = nullptr;
-	} mainDevice;
-
-	VkQueue graphicsQueue = nullptr;
-	VkQueue presentationQueue = nullptr;
-	VkSurfaceKHR surface{};
-	VkSwapchainKHR swapchain{};
-	
-	std::vector<SwapChainImage> swapChainImages;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
-	std::vector<VkCommandBuffer> commandBuffers;
-
-	// Pipeline
-	VkPipeline graphicsPipeline{};
-	VkPipelineLayout pipelineLayout{};
-	VkRenderPass renderPass{};
-
-	// Pools
-	VkCommandPool graphicsCommandPool{};
-
-	// Vulkan Utilities
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent{};
-
-	// Synchronization
-	std::vector<VkSemaphore> imageAvailable;
-	std::vector<VkSemaphore> renderFinished;
-	std::vector<VkFence> drawFences;
-
-	const std::vector<const char*> validationLayers =
-	{
-		"VK_LAYER_KHRONOS_validation"
-	};
-
-	const std::vector<const char*> deviceExtensions =
-	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
-
-#ifdef NDEBUG
-	const bool enableValidationLayers = false;
-#else
-	const bool enableValidationLayers = true;
-#endif
 };

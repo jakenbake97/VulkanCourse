@@ -33,10 +33,26 @@ GLFWwindow* Window::GetGLFWWindow() const
 
 void Window::LoopWindow(VulkanRenderer& renderer) const
 {
+	float angle = 0.0f;
+	auto deltaTime = 0.0f;
+	float lastTime = 0.0f;
+
 	// loop until closed
-	while(!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+
+		const float now = glfwGetTime();
+		deltaTime = now - lastTime;
+		lastTime = now;
+
+		angle += 10.0f * deltaTime;
+		if (angle > 360.0f)
+		{
+			angle -= 360.0f;
+		}
+
+		renderer.UpdateModel(glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f)));
 		renderer.Draw();
 	}
 }
