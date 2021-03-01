@@ -9,6 +9,9 @@
 #include <vector>
 #include <set>
 #include <array>
+#include <glm/glm.hpp>
+#include <glm/glm.hpp>
+
 #include "Utilities.h"
 #include "Mesh.h"
 
@@ -23,18 +26,17 @@ private:
 	std::vector<Mesh> meshList;
 
 	// Scene Settings
-	struct MVP
+	struct UboViewProjection
 	{
-		glm::mat4 projection;
 		glm::mat4 view;
-		glm::mat4 model;
-	}mvp;
+		glm::mat4 projection;
+	}uboViewProjection;
 	
 	// Vulkan Components
 	VkInstance instance = nullptr;
 	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
-	struct
+	struct Device
 	{
 		VkPhysicalDevice physicalDevice = nullptr;
 		VkDevice logicalDevice = nullptr;
@@ -54,8 +56,13 @@ private:
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 	
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBufferMemory;
+	std::vector<VkBuffer> vpUniformBuffers;
+	std::vector<VkDeviceMemory> vpUniformBufferMemory;
+	
+	std::vector<VkBuffer> modelDynamicUniformBuffers;
+	std::vector<VkDeviceMemory> modelDynamicUniformBufferMemory;
+
+	UboModel* modelTransferSpace;
 
 	// Pipeline
 	VkPipeline graphicsPipeline{};
@@ -68,6 +75,9 @@ private:
 	// Vulkan Utilities
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent{};
+
+	VkDeviceSize minUniformBufferOffset;
+	size_t modelUniformAlignment;
 
 	// Synchronization
 	std::vector<VkSemaphore> imageAvailable;
@@ -94,7 +104,7 @@ public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
 	void Draw();
-	void UpdateModel(glm::mat4 newModel);
+	void UpdateModel(unsigned modelId, glm::mat4 newModel);
 
 private:
 	// Vulkan Functions
@@ -132,6 +142,7 @@ private:
 	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	                                                    void* pUserData);
 
+	void AllocateDynamicBufferTransferSpace();
 	
 	// - Getter Functions
 	void GetPhysicalDevice();

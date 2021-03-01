@@ -1,16 +1,26 @@
 ﻿#include "Mesh.h"
 
 Mesh::Mesh()
-	: vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), physicalDevice(nullptr), device(nullptr), indexCount(0)
+	: uboModel({glm::mat4(1.0f)}), vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), indexCount(0), physicalDevice(nullptr), device(nullptr)
 {
 }
 
 Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
            VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices)
-	: vertexCount(vertices->size()), physicalDevice(newPhysicalDevice), device(newDevice), indexCount(indices->size())
+	: uboModel({glm::mat4(1.0f)}), vertexCount(vertices->size()), indexCount(indices->size()), physicalDevice(newPhysicalDevice), device(newDevice)
 {
 	CreateVertexBuffer(transferQueue, transferCommandPool, vertices);
 	CreateIndexBuffer(transferQueue, transferCommandPool, indices);
+}
+
+void Mesh::SetModel(const glm::mat4 newModel)
+{
+	uboModel.model = newModel;
+}
+
+glm::mat4 Mesh::GetModel() const
+{
+	return uboModel.model;
 }
 
 int Mesh::GetVertexCount() const

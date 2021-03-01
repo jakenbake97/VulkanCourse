@@ -3,18 +3,21 @@
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 col;
 
-layout (binding = 0) uniform MVP 
+layout (binding = 0) uniform UboViewProjection 
 {
-	mat4x4 projection;
-	mat4x4 view;
-	mat4x4 model;
-}mvp;
+	mat4 view;
+	mat4 projection;
+}uboViewProjection;
 
-layout (location = 0) out vec3 fragcol;
+layout (binding = 1) uniform UboModel
+{
+	mat4 model;
+}uboModel;
+
+layout (location = 0) out vec3 fragCol;
 
 void main()
 {
-	gl_Position = mvp.projection * mvp.view * mvp.model * vec4(pos, 1.0);
-
-	fragcol = col;
+	gl_Position = uboViewProjection.projection * uboViewProjection.view * uboModel.model * vec4(pos, 1.0);
+	fragCol = col;
 }
