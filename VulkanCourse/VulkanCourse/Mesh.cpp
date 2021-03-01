@@ -1,13 +1,13 @@
 ﻿#include "Mesh.h"
 
 Mesh::Mesh()
-	: uboModel({glm::mat4(1.0f)}), vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), indexCount(0), physicalDevice(nullptr), device(nullptr)
+	: model({glm::mat4(1.0f)}), vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), indexCount(0), physicalDevice(nullptr), device(nullptr)
 {
 }
 
 Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
            VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices)
-	: uboModel({glm::mat4(1.0f)}), vertexCount(vertices->size()), indexCount(indices->size()), physicalDevice(newPhysicalDevice), device(newDevice)
+	: model({glm::mat4(1.0f)}), vertexCount(vertices->size()), indexCount(indices->size()), physicalDevice(newPhysicalDevice), device(newDevice)
 {
 	CreateVertexBuffer(transferQueue, transferCommandPool, vertices);
 	CreateIndexBuffer(transferQueue, transferCommandPool, indices);
@@ -15,12 +15,17 @@ Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue trans
 
 void Mesh::SetModel(const glm::mat4 newModel)
 {
-	uboModel.model = newModel;
+	model.model = newModel;
 }
 
-glm::mat4 Mesh::GetModel() const
+glm::mat4 Mesh::GetModelMat() const
 {
-	return uboModel.model;
+	return model.model;
+}
+
+Model* Mesh::GetModelPtr()
+{
+	return &model;
 }
 
 int Mesh::GetVertexCount() const

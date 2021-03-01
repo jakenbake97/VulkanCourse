@@ -6,14 +6,14 @@
 
 #include "Utilities.h"
 
-struct UboModel
+struct Model
 {
 	glm::mat4 model;
 };
 
 class Mesh
 {
-	UboModel uboModel;
+	Model model;
 	
 	int vertexCount;
 	VkBuffer vertexBuffer;
@@ -31,7 +31,8 @@ public:
 	     VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices);
 
 	void SetModel(glm::mat4 newModel);
-	glm::mat4 GetModel() const;
+	glm::mat4 GetModelMat() const;
+	Model* GetModelPtr();
 	
 	int GetVertexCount() const;
 	int GetIndexCount() const;
