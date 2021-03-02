@@ -1,13 +1,13 @@
 ﻿#include "Mesh.h"
 
 Mesh::Mesh()
-	: model({glm::mat4(1.0f)}), vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), indexCount(0), physicalDevice(nullptr), device(nullptr)
+	: model({glm::mat4(1.0f)}), texId(), vertexCount(0), vertexBuffer(0), vertexBufferMemory(0), indexCount(0), physicalDevice(nullptr), device(nullptr)
 {
 }
 
 Mesh::Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
-           VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices)
-	: model({glm::mat4(1.0f)}), vertexCount(vertices->size()), indexCount(indices->size()), physicalDevice(newPhysicalDevice), device(newDevice)
+           VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices, int newTexId)
+	: model({glm::mat4(1.0f)}), texId(newTexId), vertexCount(vertices->size()), indexCount(indices->size()), physicalDevice(newPhysicalDevice), device(newDevice)
 {
 	CreateVertexBuffer(transferQueue, transferCommandPool, vertices);
 	CreateIndexBuffer(transferQueue, transferCommandPool, indices);
@@ -46,6 +46,16 @@ VkBuffer Mesh::GetVertexBuffer() const
 VkBuffer Mesh::GetIndexBuffer() const
 {
 	return indexBuffer;
+}
+
+int Mesh::GetTexId()
+{
+	return texId;
+}
+
+void Mesh::SetTexId(int newId)
+{
+	texId = newId;
 }
 
 void Mesh::DestroyMeshBuffers() const

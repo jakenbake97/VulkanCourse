@@ -17,8 +17,9 @@ constexpr void VK_ERROR(const int result, const char* message)
 
 struct Vertex
 {
-	glm::vec3 pos; // Vertex Position
-	glm::vec3 col; // Vertex Color (RGB)
+	glm::vec3 pos; // Vertex Position (x,y,z)
+	glm::vec3 col; // Vertex Color (r,g,b)
+	glm::vec2 tex; // texture coords (u,v)
 };
 
 // Indices (locations) of queue Families (if they exist at all)

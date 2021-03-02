@@ -14,6 +14,8 @@ struct Model
 class Mesh
 {
 	Model model;
+
+	int texId;
 	
 	int vertexCount;
 	VkBuffer vertexBuffer;
@@ -28,7 +30,7 @@ class Mesh
 public:
 	Mesh();
 	Mesh(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
-	     VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices);
+	     VkCommandPool transferCommandPool, std::vector<Vertex>* vertices, std::vector<uint32_t>* indices, int newTexId);
 
 	void SetModel(glm::mat4 newModel);
 	glm::mat4 GetModelMat() const;
@@ -39,6 +41,9 @@ public:
 	VkBuffer GetVertexBuffer() const;
 	VkBuffer GetIndexBuffer() const;
 
+	int GetTexId();
+	void SetTexId(int newId);
+	
 	void DestroyMeshBuffers() const;
 
 	~Mesh();

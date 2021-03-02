@@ -63,10 +63,13 @@ private:
 
 	// Descriptors
 	VkDescriptorSetLayout descriptorSetLayout;
+	VkDescriptorSetLayout samplerSetLayout;
 	VkPushConstantRange pushConstantRange;
 	
 	VkDescriptorPool descriptorPool;
+	VkDescriptorPool samplerDescriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
+	std::vector<VkDescriptorSet> samplerDescriptorSets;
 	
 	std::vector<VkBuffer> vpUniformBuffers;
 	std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -141,7 +144,7 @@ private:
 	void CreateCommandPool();
 	void CreateCommandBuffers();
 	void CreateUniformBuffers();
-	void CreateDescriptorPool();
+	void CreateDescriptorPools();
 	void CreateDescriptorSets();
 	void CreateSynchronization();
 	void CreateTextureSampler();
@@ -194,6 +197,7 @@ private:
 
 	int CreateTextureImage(const std::string& fileName);
 	int CreateTexture(const std::string& fileName);
+	int CreateTextureDescriptor(VkImageView textureImage);
 	
 	// - - Loader Functions
 	stbi_uc* LoadTextureFile(const std::string& fileName, int& width, int& height, VkDeviceSize* imageSize);
