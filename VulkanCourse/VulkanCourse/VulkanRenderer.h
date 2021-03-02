@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -11,6 +12,8 @@
 #include <array>
 #include <glm/glm.hpp>
 #include <glm/glm.hpp>
+
+#include "stb_image.h"
 
 #include "Utilities.h"
 #include "Mesh.h"
@@ -49,6 +52,13 @@ private:
 	
 	std::vector<SwapChainImage> swapChainImages;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
+
+	VkImage depthBufferImage;
+	VkDeviceMemory depthBufferImageMemory;
+	VkImageView depthBufferImageView;
+
+	VkSampler textureSampler;
+	
 	std::vector<VkCommandBuffer> commandBuffers;
 
 	// Descriptors
@@ -66,6 +76,11 @@ private:
 
 	// Model* modelTransferSpace;
 
+	// Assets
+	std::vector<VkImage> textureImages;
+	std::vector<VkDeviceMemory> textureImageMemory;
+	std::vector<VkImageView> textureImageViews;
+	
 	// Pipeline
 	VkPipeline graphicsPipeline{};
 	VkPipelineLayout pipelineLayout{};
@@ -77,6 +92,8 @@ private:
 	// Vulkan Utilities
 	VkFormat swapChainImageFormat;
 	VkExtent2D swapChainExtent{};
+
+	VkFormat depthBufferImageFormat;
 
 	VkDeviceSize minUniformBufferOffset;
 	size_t modelUniformAlignment;
@@ -119,6 +136,7 @@ private:
 	void CreateDescriptorSetLayout();
 	void CreatePushConstantRange();
 	void CreateGraphicsPipeline();
+	void CreateDepthBufferImage();
 	void CreateFrameBuffers();
 	void CreateCommandPool();
 	void CreateCommandBuffers();
@@ -126,6 +144,7 @@ private:
 	void CreateDescriptorPool();
 	void CreateDescriptorSets();
 	void CreateSynchronization();
+	void CreateTextureSampler();
 
 	void RecordCommands(uint32_t currentImage);
 
@@ -166,9 +185,16 @@ private:
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
 	static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
 	static VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
+	VkFormat ChooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags) const;
 
 	// - - Create Functions
-	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+	VkImage CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propFlags, VkDeviceMemory* imageMemory) const;
+	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
 	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
+
+	int CreateTextureImage(const std::string& fileName);
+	int CreateTexture(const std::string& fileName);
 	
+	// - - Loader Functions
+	stbi_uc* LoadTextureFile(const std::string& fileName, int& width, int& height, VkDeviceSize* imageSize);
 };

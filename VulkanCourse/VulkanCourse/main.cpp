@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include "Window.h"
 #include "VulkanRenderer.h"
 #include <stdexcept>
