@@ -6,6 +6,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include <stdexcept>
 #include <vector>
 #include <set>
@@ -17,6 +21,7 @@
 
 #include "Utilities.h"
 #include "Mesh.h"
+#include "MeshModel.h"
 
 class VulkanRenderer
 {
@@ -26,8 +31,8 @@ private:
 	int currentFrame = 0;
 
 	// Scene Objects
-	std::vector<Mesh> meshList;
-
+	std::vector<MeshModel> modelList;
+	
 	// Scene Settings
 	struct UboViewProjection
 	{
@@ -79,7 +84,7 @@ private:
 
 	// Model* modelTransferSpace;
 
-	// Assets
+	// Assets	
 	std::vector<VkImage> textureImages;
 	std::vector<VkDeviceMemory> textureImageMemory;
 	std::vector<VkImageView> textureImageViews;
@@ -126,7 +131,8 @@ public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
 	void Draw();
-	void UpdateModel(unsigned modelId, glm::mat4 newModel);
+	void UpdateModel(uint32_t modelId, glm::mat4 newModel);
+	uint32_t CreateMeshModel(const std::string& modelFile);
 
 private:
 	// Vulkan Functions

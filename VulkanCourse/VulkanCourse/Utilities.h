@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 
 const int MAX_FRAME_DRAWS = 2;
-const int MAX_OBJECTS = 2;
+const int MAX_OBJECTS = 20;
 
 constexpr void VK_ERROR(const int result, const char* message)
 {

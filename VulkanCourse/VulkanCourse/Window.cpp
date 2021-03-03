@@ -37,6 +37,7 @@ void Window::LoopWindow(VulkanRenderer& renderer) const
 	auto deltaTime = 0.0f;
 	float lastTime = 0.0f;
 
+	const auto modelIndex = renderer.CreateMeshModel("Models/TexturedMonkey.fbx");
 	// loop until closed
 	while (!glfwWindowShouldClose(window))
 	{
@@ -46,23 +47,17 @@ void Window::LoopWindow(VulkanRenderer& renderer) const
 		deltaTime = now - lastTime;
 		lastTime = now;
 
-		angle += 10.0f * deltaTime;
+		angle += 1.0f * deltaTime;
 		if (angle > 360.0f)
 		{
 			angle -= 360.0f;
 		}
 
-		glm::mat4 firstModel(1.0f);
-		glm::mat4 secondModel(1.0f);
-
-		firstModel = glm::translate(firstModel, glm::vec3(0.0f, 0.0f,  (3 * sin(now) - 3.5f)));
-		firstModel = glm::rotate(firstModel, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		secondModel = glm::translate(secondModel, glm::vec3(0.0f, 0.0f, -3.5f));
-		secondModel = glm::rotate(secondModel, glm::radians(-angle * 10), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		renderer.UpdateModel(0, firstModel);
-		renderer.UpdateModel(1, secondModel);
+		glm::mat4 testMat = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+		testMat = glm::rotate(testMat,-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		testMat = glm::rotate(testMat, angle, glm::vec3(0, 1, 0));
+		renderer.UpdateModel(modelIndex, testMat);
+		
 		renderer.Draw();
 	}
 }
