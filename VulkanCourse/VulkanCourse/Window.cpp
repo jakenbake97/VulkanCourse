@@ -37,7 +37,7 @@ void Window::LoopWindow(VulkanRenderer& renderer) const
 	auto deltaTime = 0.0f;
 	float lastTime = 0.0f;
 
-	const auto modelIndex = renderer.CreateMeshModel("Models/TexturedMonkey.fbx");
+	const auto modelIndex = renderer.CreateMeshModel("Models/nanosuit.obj");
 	// loop until closed
 	while (!glfwWindowShouldClose(window))
 	{

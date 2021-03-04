@@ -958,8 +958,7 @@ void VulkanRenderer::CreateTextureSampler()
 	samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-	// sort of a double negative unnormalized false == normalized coordinates true
+	samplerCreateInfo.unnormalizedCoordinates = VK_FALSE; // sort of a double negative unnormalized false == normalized coordinates true
 	samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerCreateInfo.mipLodBias = 0.0f;
 	samplerCreateInfo.minLod = 0;
@@ -1669,6 +1668,8 @@ uint32_t VulkanRenderer::CreateMeshModel(const std::string& modelFile)
 	const std::vector<Mesh> modelMeshes = MeshModel::LoadNode(mainDevice.physicalDevice, mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool, scene->mRootNode, scene, matToTex);
 
 	modelList.emplace_back(modelMeshes);
+
+	return modelList.size() - 1;
 }
 
 VkBool32 VulkanRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
