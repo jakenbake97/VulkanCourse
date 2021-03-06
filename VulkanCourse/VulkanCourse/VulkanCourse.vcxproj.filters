@@ -57,5 +57,7 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="Shaders\FragmentShader.frag" />
+    <None Include="Shaders\second.vert" />
+    <None Include="Shaders\second.frag" />
   </ItemGroup>
 </Project>

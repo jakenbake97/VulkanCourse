@@ -162,6 +162,8 @@
   <ItemGroup>
     <None Include="Shaders\compileShaders.bat" />
     <None Include="Shaders\FragmentShader.frag" />
+    <None Include="Shaders\second.frag" />
+    <None Include="Shaders\second.vert" />
     <None Include="Shaders\VertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
