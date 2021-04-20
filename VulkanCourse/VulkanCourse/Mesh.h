@@ -1,9 +1,8 @@
 ﻿#pragma once
 
 #define GLFW_INCLUDE_VULKAN
-#include <vector>
 #include <GLFW/glfw3.h>
-
+#include <vector>
 #include "Utilities.h"
 
 struct Model
@@ -41,12 +40,10 @@ public:
 	VkBuffer GetVertexBuffer() const;
 	VkBuffer GetIndexBuffer() const;
 
-	int GetTexId();
+	int GetTexId() const;
 	void SetTexId(int newId);
 	
 	void DestroyMeshBuffers() const;
-
-	~Mesh();
 
 private:
 	void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices);

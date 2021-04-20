@@ -1,6 +1,8 @@
 #include "VulkanRenderer.h"
 #include <algorithm>
+#include <array>
 #include <string>
+#include <set>
 
 VulkanRenderer::VulkanRenderer(GLFWwindow* pWindow)
 	:
@@ -186,7 +188,7 @@ void VulkanRenderer::Draw()
 	currentFrame = (currentFrame + 1) % MAX_FRAME_DRAWS;
 }
 
-void VulkanRenderer::UpdateModel(uint32_t modelId, glm::mat4 newModel)
+void VulkanRenderer::UpdateModel(const uint32_t modelId, const glm::mat4 newModel)
 {
 	if (modelId >= modelList.size()) return;
 
@@ -225,7 +227,7 @@ void VulkanRenderer::CreateInstance()
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 
 		PopulateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = static_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo);
+		createInfo.pNext = &debugCreateInfo;
 	}
 	else
 	{
@@ -402,7 +404,6 @@ void VulkanRenderer::CreateRenderPass()
 	std::array<VkSubpassDescription, 2> subPasses{};
 
 	// -- Attachments --
-
 	// SubPass 1 attachments & references (Input Attachments)
 
 	// Color Attachment (Input)
@@ -957,7 +958,7 @@ void VulkanRenderer::CreateFrameBuffers()
 void VulkanRenderer::CreateCommandPool()
 {
 	// get indices of queue families from device
-	QueueFamilyIndices queueFamilyIndices = GetQueueFamilies(mainDevice.physicalDevice);
+	const QueueFamilyIndices queueFamilyIndices = GetQueueFamilies(mainDevice.physicalDevice);
 
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1367,8 +1368,8 @@ VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
                                                       const VkAllocationCallbacks* pAllocator,
                                                       VkDebugUtilsMessengerEXT* pDebugMessenger)
 {
-	const auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-		instance, "vkCreateDebugUtilsMessengerEXT");
+	const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
+		instance, "vkCreateDebugUtilsMessengerEXT"));
 	if (func != nullptr)
 	{
 		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -1379,11 +1380,11 @@ VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
 	}
 }
 
-void VulkanRenderer::DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
+void VulkanRenderer::DestroyDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerEXT debugMessenger,
                                                    const VkAllocationCallbacks* pAllocator)
 {
-	const auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-		instance, "vkDestroyDebugUtilsMessengerEXT");
+	const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
+		instance, "vkDestroyDebugUtilsMessengerEXT"));
 	if (func != nullptr)
 	{
 		func(instance, debugMessenger, pAllocator);
@@ -1463,7 +1464,7 @@ bool VulkanRenderer::CheckInstanceExtensionSupport(std::vector<const char*>* che
 	return true;
 }
 
-bool VulkanRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
+bool VulkanRenderer::CheckDeviceExtensionSupport(const VkPhysicalDevice device) const
 {
 	// get device extension count
 	uint32_t extensionCount = 0;
@@ -1492,7 +1493,7 @@ bool VulkanRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
 	return requiredExtensions.empty();
 }
 
-bool VulkanRenderer::CheckDeviceSuitable(VkPhysicalDevice device)
+bool VulkanRenderer::CheckDeviceSuitable(const VkPhysicalDevice device)
 {
 	VkPhysicalDeviceFeatures deviceFeatures;
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
@@ -1544,7 +1545,7 @@ bool VulkanRenderer::CheckValidationLayerSupport() const
 	return true;
 }
 
-QueueFamilyIndices VulkanRenderer::GetQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices VulkanRenderer::GetQueueFamilies(const VkPhysicalDevice device) const
 {
 	QueueFamilyIndices indices;
 
@@ -1611,7 +1612,7 @@ std::vector<const char*> VulkanRenderer::GetRequiredGLFWExtensions() const
 	return extensions;
 }
 
-SwapChainDetails VulkanRenderer::GetSwapChainDetails(VkPhysicalDevice device)
+SwapChainDetails VulkanRenderer::GetSwapChainDetails(const VkPhysicalDevice device) const
 {
 	SwapChainDetails swapChainDetails;
 
@@ -1645,7 +1646,7 @@ SwapChainDetails VulkanRenderer::GetSwapChainDetails(VkPhysicalDevice device)
 	return swapChainDetails;
 }
 
-VkExtent2D VulkanRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities)
+VkExtent2D VulkanRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities) const
 {
 	// if current extent is at numeric limits, then extent can vary. Otherwise, it is the size of the window.
 	if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
@@ -1732,8 +1733,8 @@ VkFormat VulkanRenderer::ChooseSupportedFormat(const std::vector<VkFormat>& form
 	return VK_FORMAT_UNDEFINED;
 }
 
-VkImage VulkanRenderer::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                                    VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propFlags,
+VkImage VulkanRenderer::CreateImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageTiling tiling,
+                                    const VkImageUsageFlags usageFlags, const VkMemoryPropertyFlags propFlags,
                                     VkDeviceMemory* imageMemory) const
 {
 	// -- Create Image --
@@ -1776,7 +1777,7 @@ VkImage VulkanRenderer::CreateImage(uint32_t width, uint32_t height, VkFormat fo
 }
 
 VkImageView VulkanRenderer::CreateImageView(const VkImage image, const VkFormat format,
-                                            VkImageAspectFlags aspectFlags) const
+                                            const VkImageAspectFlags aspectFlags) const
 {
 	VkImageViewCreateInfo viewCreateInfo = {};
 	viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -1803,7 +1804,7 @@ VkImageView VulkanRenderer::CreateImageView(const VkImage image, const VkFormat 
 	return imageView;
 }
 
-VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& shaderCode)
+VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& shaderCode) const
 {
 	VkShaderModuleCreateInfo shaderModuleCreateInfo = {};
 	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -1838,9 +1839,9 @@ int VulkanRenderer::CreateTextureImage(const std::string& fileName)
 	stbi_image_free(imageData);
 
 	VkDeviceMemory texImageMemory;
-	VkImage texImage = CreateImage(width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
-	                               VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-	                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texImageMemory);
+	const VkImage texImage = CreateImage(width, height, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+	                                     VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+	                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texImageMemory);
 
 	// Transition image to be DST for copy operation
 	TransitionImageLayout(mainDevice.logicalDevice, graphicsQueue, graphicsCommandPool, texImage,
@@ -1876,7 +1877,7 @@ int VulkanRenderer::CreateTexture(const std::string& fileName)
 	return descriptorLocation;
 }
 
-int VulkanRenderer::CreateTextureDescriptor(VkImageView textureImage)
+int VulkanRenderer::CreateTextureDescriptor(const VkImageView textureImage)
 {
 	VkDescriptorSet descriptorSet;
 
@@ -1962,15 +1963,6 @@ VkBool32 VulkanRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT me
 {
 	printf("\nValidation layer: %s \n", pCallbackData->pMessage);
 	return VK_FALSE;
-}
-
-void VulkanRenderer::AllocateDynamicBufferTransferSpace()
-{
-	//// calculate alignment of model data
-	//modelUniformAlignment = (sizeof(Model) + minUniformBufferOffset - 1) & ~(minUniformBufferOffset - 1);
-
-	//// allocate space in memory to hold dynamic buffer that is aligned to our required alignment and holds the number maximum allowed number of objects
-	//modelTransferSpace = (Model*)_aligned_malloc(modelUniformAlignment * MAX_OBJECTS, modelUniformAlignment);
 }
 
 stbi_uc* VulkanRenderer::LoadTextureFile(const std::string& fileName, int& width, int& height, VkDeviceSize* imageSize)

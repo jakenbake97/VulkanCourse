@@ -48,12 +48,12 @@ VkBuffer Mesh::GetIndexBuffer() const
 	return indexBuffer;
 }
 
-int Mesh::GetTexId()
+int Mesh::GetTexId() const
 {
 	return texId;
 }
 
-void Mesh::SetTexId(int newId)
+void Mesh::SetTexId(const int newId)
 {
 	texId = newId;
 }
@@ -67,9 +67,7 @@ void Mesh::DestroyMeshBuffers() const
 	vkFreeMemory(device, indexBufferMemory, nullptr);
 }
 
-Mesh::~Mesh() = default;
-
-void Mesh::CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<Vertex>* vertices)
+void Mesh::CreateVertexBuffer(VkQueue transferQueue, const VkCommandPool transferCommandPool, std::vector<Vertex>* vertices)
 {
 	const VkDeviceSize bufferSize = static_cast<VkDeviceSize>(sizeof(Vertex)) * vertices->size();
 
@@ -105,7 +103,7 @@ void Mesh::CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferComma
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void Mesh::CreateIndexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool, std::vector<uint32_t>* indices)
+void Mesh::CreateIndexBuffer(VkQueue transferQueue, const VkCommandPool transferCommandPool, std::vector<uint32_t>* indices)
 {
 	const VkDeviceSize bufferSize = sizeof(uint32_t) * indices->size();
 

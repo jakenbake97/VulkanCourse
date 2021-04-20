@@ -10,17 +10,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <stdexcept>
 #include <vector>
-#include <set>
-#include <array>
-#include <glm/glm.hpp>
-#include <glm/glm.hpp>
-
 #include "stb_image.h"
-
 #include "Utilities.h"
-#include "Mesh.h"
 #include "MeshModel.h"
 
 class VulkanRenderer
@@ -89,8 +81,6 @@ private:
 	//std::vector<VkBuffer> modelDynamicUniformBuffers;
 	//std::vector<VkDeviceMemory> modelDynamicUniformBufferMemory;
 
-	// Model* modelTransferSpace;
-
 	// Assets	
 	std::vector<VkImage> textureImages;
 	std::vector<VkDeviceMemory> textureImageMemory;
@@ -140,6 +130,11 @@ private:
 public:
 	VulkanRenderer(GLFWwindow* pWindow);
 	~VulkanRenderer();
+	VulkanRenderer(VulkanRenderer& other) = delete;
+	VulkanRenderer& operator= (const VulkanRenderer& other) = delete;
+	VulkanRenderer(VulkanRenderer&& other) = delete;
+	VulkanRenderer& operator= (VulkanRenderer&& other) = delete;
+	
 	void Draw();
 	void UpdateModel(uint32_t modelId, glm::mat4 newModel);
 	uint32_t CreateMeshModel(const std::string& modelFile);
@@ -184,8 +179,6 @@ private:
 	                                                    VkDebugUtilsMessageTypeFlagsEXT messageType,
 	                                                    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	                                                    void* pUserData);
-
-	void AllocateDynamicBufferTransferSpace();
 	
 	// - Getter Functions
 	void GetPhysicalDevice();
@@ -193,17 +186,17 @@ private:
 	// - Support Functions
 	// - - Checker Functions
 	static bool CheckInstanceExtensionSupport(std::vector<const char*>* checkExtensions);
-	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+	bool CheckDeviceExtensionSupport(VkPhysicalDevice device) const;
 	bool CheckDeviceSuitable(VkPhysicalDevice device);
 	bool CheckValidationLayerSupport() const;
 
 	// - - Getter Functions
-	QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device);
+	QueueFamilyIndices GetQueueFamilies(VkPhysicalDevice device) const;
 	std::vector<const char*> GetRequiredGLFWExtensions() const;
-	SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device);
+	SwapChainDetails GetSwapChainDetails(VkPhysicalDevice device) const;
 
 	// - - Chooser Functions
-	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities) const;
 	static VkSurfaceFormatKHR ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
 	static VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
 	VkFormat ChooseSupportedFormat(const std::vector<VkFormat>& formats, VkImageTiling tiling, VkFormatFeatureFlags featureFlags) const;
@@ -211,7 +204,7 @@ private:
 	// - - Create Functions
 	VkImage CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propFlags, VkDeviceMemory* imageMemory) const;
 	VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
-	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode);
+	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode) const;
 
 	int CreateTextureImage(const std::string& fileName);
 	int CreateTexture(const std::string& fileName);

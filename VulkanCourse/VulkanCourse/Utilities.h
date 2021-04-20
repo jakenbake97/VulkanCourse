@@ -62,7 +62,7 @@ static std::vector<char> ReadFile(const std::string& fileName)
 	}
 
 	// get current read position and use to size file buffer
-	size_t fileSize = static_cast<size_t>(file.tellg());
+	const size_t fileSize = static_cast<size_t>(file.tellg());
 	std::vector<char> fileBuffer(fileSize);
 
 	// reset read position to start
@@ -76,7 +76,7 @@ static std::vector<char> ReadFile(const std::string& fileName)
 	return fileBuffer;
 }
 
-static uint32_t FindMemoryTypeIndex(VkPhysicalDevice physicalDevice, uint32_t allowedTypes,
+static uint32_t FindMemoryTypeIndex(VkPhysicalDevice physicalDevice, const uint32_t allowedTypes,
                                     VkMemoryPropertyFlags properties)
 {
 	// Get Properties of physical device memory
@@ -179,7 +179,7 @@ static void EndAndSubmitCommandBuffer(VkDevice device, VkCommandPool commandPool
 static void CopyBuffer(VkDevice device, VkQueue transferQueue, VkCommandPool transferCommandPool, VkBuffer srcBuffer,
                        VkBuffer dstBuffer, VkDeviceSize bufferSize)
 {
-	VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, transferCommandPool);
+	const VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, transferCommandPool);
 	{
 		// Region of data to copy from and to
 		VkBufferCopy bufferCopyRegion = {};
@@ -196,7 +196,7 @@ static void CopyBuffer(VkDevice device, VkQueue transferQueue, VkCommandPool tra
 static void CopyImageBuffer(VkDevice device, VkQueue transferQueue, VkCommandPool transferCommandPool,
                             VkBuffer srcBuffer, VkImage image, uint32_t width, uint32_t height)
 {
-	VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, transferCommandPool);
+	const VkCommandBuffer transferCommandBuffer = BeginCommandBuffer(device, transferCommandPool);
 	{
 		VkBufferImageCopy imageRegion = {};
 		imageRegion.bufferOffset = 0;
@@ -218,7 +218,7 @@ static void CopyImageBuffer(VkDevice device, VkQueue transferQueue, VkCommandPoo
 static void TransitionImageLayout(VkDevice device, VkQueue queue, VkCommandPool commandPool, VkImage image,
                                   VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-	VkCommandBuffer commandBuffer = BeginCommandBuffer(device, commandPool);
+	const VkCommandBuffer commandBuffer = BeginCommandBuffer(device, commandPool);
 	{
 		VkImageMemoryBarrier imageMemoryBarrier = {};
 		imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

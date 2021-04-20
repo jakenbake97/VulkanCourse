@@ -33,7 +33,7 @@ std::vector<std::string> MeshModel::LoadMaterials(const aiScene* scene)
 }
 
 std::vector<Mesh> MeshModel::LoadNode(VkPhysicalDevice newPhysicalDevice, VkDevice newDevice, VkQueue transferQueue,
-	VkCommandPool commandPool, aiNode* node, const aiScene* scene, std::vector<int> matToTex)
+                                      VkCommandPool commandPool, aiNode* node, const aiScene* scene, std::vector<int>& matToTex)
 {
 	std::vector<Mesh> meshList;
 
